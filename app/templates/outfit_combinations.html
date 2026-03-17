@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6">
+  <a href="/dashboard" class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+    <span class="material-symbols-outlined">arrow_back</span>
+    Back to Dashboard
+  </a>
+</div>
+
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 tracking-tight sm:text-4xl">AI-Generated Outfit Combinations</h1>
+    <p class="mt-3 text-base text-gray-600">Discover stylish outfit combinations powered by AI based on your wardrobe.</p>
+</div>
+
+<!-- Combinations Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+  {% for combination in outfit_combinations %}
+  <div class="group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:shadow-lg">
+    <!-- Combination Preview -->
+    <div class="p-6 bg-gray-50">
+      <div class="grid grid-cols-3 gap-4">
+        <!-- Top -->
+        {% if combination.top %}
+        <div class="flex flex-col items-center">
+          <div class="w-full aspect-[3/4] bg-center bg-no-repeat bg-contain rounded-lg border border-gray-200 bg-white" 
+               style='background-image: url("/static/{{ combination.top.image_path|sanitize_url }}");'></div>
+          <p class="text-xs text-gray-600 mt-2 text-center font-medium">{{ combination.top.subcategory or combination.top.category }}</p>
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center">
+          <div class="w-full aspect-[3/4] bg-gray-200 rounded-lg flex items-center justify-center border border-gray-300">
+            <span class="material-symbols-outlined text-gray-400 text-2xl">shirt</span>
+          </div>
+          <p class="text-xs text-gray-600 mt-2 text-center">Top</p>
+        </div>
+        {% endif %}
+        
+        <!-- Bottom -->
+        {% if combination.bottom %}
+        <div class="flex flex-col items-center">
+          <div class="w-full aspect-[3/4] bg-center bg-no-repeat bg-contain rounded-lg border border-gray-200 bg-white" 
+               style='background-image: url("/static/{{ combination.bottom.image_path|sanitize_url }}");'></div>
+          <p class="text-xs text-gray-600 mt-2 text-center font-medium">{{ combination.bottom.subcategory or combination.bottom.category }}</p>
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center">
+          <div class="w-full aspect-[3/4] bg-gray-200 rounded-lg flex items-center justify-center border border-gray-300">
+            <span class="material-symbols-outlined text-gray-400 text-2xl">straighten</span>
+          </div>
+          <p class="text-xs text-gray-600 mt-2 text-center">Bottom</p>
+        </div>
+        {% endif %}
+        
+        <!-- Shoes -->
+        {% if combination.shoes %}
+        <div class="flex flex-col items-center">
+          <div class="w-full aspect-[3/4] bg-center bg-no-repeat bg-contain rounded-lg border border-gray-200 bg-white" 
+               style='background-image: url("/static/{{ combination.shoes.image_path|sanitize_url }}");'></div>
+          <p class="text-xs text-gray-600 mt-2 text-center font-medium">{{ combination.shoes.subcategory or combination.shoes.category }}</p>
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center">
+          <div class="w-full aspect-[3/4] bg-gray-200 rounded-lg flex items-center justify-center border border-gray-300">
+            <span class="material-symbols-outlined text-gray-400 text-2xl">footprint</span>
+          </div>
+          <p class="text-xs text-gray-600 mt-2 text-center">Shoes</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Combination Details -->
+    <div class="p-6">
+      <h3 class="text-gray-900 text-xl font-bold leading-tight mb-2">{{ combination.color_theme or 'Stylish Combination' }}</h3>
+      <p class="text-gray-600 text-base font-normal leading-normal mb-6">{{ combination.style_notes or 'A great combination from your wardrobe' }}</p>
+      
+      <button class="w-full h-10 px-4 bg-[var(--primary-color)] text-white text-sm font-bold leading-normal rounded-lg hover:bg-blue-700 transition-colors"
+              onclick="viewCombinationDetail('{{ combination.id }}')">Try This Combination</button>
+    </div>
+  </div>
+  {% else %}
+  <!-- Empty State -->
+  <div class="col-span-full text-center py-16">
+    <div class="mb-6">
+      <span class="material-symbols-outlined text-6xl text-gray-300">palette</span>
+    </div>
+    <h3 class="text-xl font-semibold text-gray-600 mb-2">No outfit combinations yet</h3>
+    <p class="text-gray-500 mb-6">Upload more items to your wardrobe to get AI-generated outfit combinations!</p>
+    <div class="flex items-center justify-center gap-4">
+      <a href="/upload_outfit" class="flex items-center gap-2 px-6 py-3 bg-[var(--primary-color)] text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <span class="material-symbols-outlined text-sm">add</span>
+        Upload Items
+      </a>
+      <button onclick="generateCombinations()" class="flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+        <span class="material-symbols-outlined text-sm">auto_awesome</span>
+        Generate Combinations
+      </button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Actions Section -->
+{% if outfit_combinations %}
+<div class="text-center">
+  <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+    <button class="flex h-12 w-full max-w-xs cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-[var(--primary-color)] px-6 text-white text-base font-bold leading-normal tracking-wide shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
+            onclick="generateMoreCombinations()">
+      <span class="truncate">Get 5 More Combinations</span>
+    </button>
+    <a href="/upload_outfit" class="flex h-12 w-full max-w-xs cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-gray-300 bg-white px-6 text-gray-900 text-base font-bold leading-normal tracking-wide shadow-sm transition-all hover:bg-gray-50 hover:shadow">
+      <span class="truncate">Upload More Items</span>
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<script>
+    function viewCombinationDetail(combinationId) {
+        console.log('Viewing combination:', combinationId);
+        // You can implement detail view navigation here
+        // window.location.href = `/combination/${combinationId}`;
+    }
+
+    async function generateMoreCombinations() {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        
+        // Show loading state
+        button.innerHTML = '<span class="animate-spin mr-2">⟳</span>Generating...';
+        button.disabled = true;
+        
+        try {
+            const currentCount = document.querySelectorAll('.group').length;
+            const response = await fetch(`/api/more_combinations?current_count=${currentCount}`);
+            const data = await response.json();
+            
+            if (data.combinations && data.combinations.length > 0) {
+                // Refresh page to show new combinations
+                window.location.reload();
+            } else {
+                alert('No new combinations could be generated. Try uploading more items to your wardrobe!');
+            }
+        } catch (error) {
+            console.error('Error generating combinations:', error);
+            alert('Error generating new combinations. Please try again.');
+        } finally {
+            // Reset button
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+    
+    async function generateCombinations() {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        
+        // Show loading state
+        button.innerHTML = '<span class="animate-spin mr-2">⟳</span>Generating...';
+        button.disabled = true;
+        
+        try {
+            const response = await fetch('/api/more_combinations?current_count=0');
+            const data = await response.json();
+            
+            if (data.combinations && data.combinations.length > 0) {
+                // Refresh page to show new combinations
+                window.location.reload();
+            } else {
+                alert('Could not generate combinations. Please upload more items to your wardrobe first!');
+            }
+        } catch (error) {
+            console.error('Error generating combinations:', error);
+            alert('Error generating combinations. Please try again.');
+        } finally {
+            // Reset button
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

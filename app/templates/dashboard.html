@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+/* Dashboard-specific full-width override */
+body main {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+body main > div {
+  max-width: none !important;
+  margin: 0 !important;
+}
+</style>
+<div class="relative flex h-auto min-h-screen w-full flex-row bg-white group/design-root overflow-x-hidden">
+  <div class="flex h-full grow flex-col">
+    <div class="flex h-full">
+      <!-- Sidebar -->
+      <aside class="flex flex-col w-64 bg-white border-r border-gray-200">
+        
+        <nav class="flex-1 px-4 py-6 space-y-2">
+          <a class="flex items-center gap-3 px-4 py-2 text-base font-medium rounded-lg text-white bg-[var(--primary-color)]" href="/dashboard">
+            <span class="material-symbols-outlined">home</span> Dashboard
+          </a>
+          <a class="flex items-center gap-3 px-4 py-2 text-base font-medium rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900" href="/wardrobe">
+            <span class="material-symbols-outlined">checkroom</span> My Wardrobe
+          </a>
+          <a class="flex items-center gap-3 px-4 py-2 text-base font-medium rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900" href="/upload-outfit">
+            <span class="material-symbols-outlined">add_circle</span> Upload Outfit
+          </a>
+          <a class="flex items-center gap-3 px-4 py-2 text-base font-medium rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900" href="/weather-outfits">
+            <span class="material-symbols-outlined">partly_cloudy_day</span> Weather Style
+          </a>
+          <a class="flex items-center gap-3 px-4 py-2 text-base font-medium rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900" href="/outfit-combinations">
+            <span class="material-symbols-outlined">palette</span> Outfit Combinations
+          </a>
+          <a class="flex items-center gap-3 px-4 py-2 text-base font-medium rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900" href="/style-assistant">
+            <span class="material-symbols-outlined">smart_toy</span> Style Assistant
+          </a>
+          <a class="flex items-center gap-3 px-4 py-2 text-base font-medium rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900" href="/see-model">
+            <span class="material-symbols-outlined">person_4</span> See Model
+          </a>
+          <a class="flex items-center gap-3 px-4 py-2 text-base font-medium rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900" href="/try-on">
+            <span class="material-symbols-outlined">face_retouching_natural</span> Try On
+          </a>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 bg-gray-50">
+        <header class="flex items-center justify-start whitespace-nowrap border-b border-solid border-b-gray-200 px-6 py-4 bg-white">
+          {% if error %}
+          <div class="mr-4 rounded-xl border border-red-200 bg-red-50 p-2 text-red-800 text-sm">
+            {{ error }}
+          </div>
+          {% endif %}
+        </header>
+
+        <main class="px-0 py-8 w-full">
+          <div class="w-full px-2">
+            <!-- Home Section -->
+            <div id="home" class="section">
+              <div class="mb-8 px-2">
+                <h1 class="text-3xl font-bold text-gray-800 tracking-tight sm:text-4xl">Dashboard</h1>
+                <p class="mt-3 text-base text-gray-600">Welcome back{{ ', ' + user.name if user else '' }}! Let's pick your style for today.</p>
+                {% if user_email %}
+                <p class="mt-1 text-xs text-gray-500">Logged in as: {{ user_email }}</p>
+                {% endif %}
+              </div>
+              
+              <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 mx-2">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Outfit of the Day</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+                <div class="outfit-container">
+                  <div>
+                    {% if ai_outfit_url %}
+                      <img alt="Outfit of the day" class="outfit-image rounded-lg object-contain w-full h-[300px]" src="{{ ai_outfit_url }}"/>
+                    {% else %}
+                      <div class="rounded-lg bg-gray-100 w-full h-[300px] flex items-center justify-center">
+                        <div class="text-center">
+                          <span class="material-symbols-outlined text-6xl text-gray-300 mb-4">style</span>
+                          <p class="text-gray-500 font-medium">No AI outfit generated yet</p>
+                          <p class="text-gray-400 text-sm">Click "Generate New" to create your first outfit!</p>
+                        </div>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+                  <div class="flex flex-col justify-center">
+                    <p class="text-gray-600 mb-4 text-base">Based on today's weather and your personal style, here's a suggestion to keep you looking sharp and feeling comfortable.</p>
+                    <div class="space-y-4">
+                      <div class="flex items-center gap-4">
+                        <div class="bg-gray-100 rounded-lg p-3">
+                          <span class="material-symbols-outlined text-2xl text-[var(--primary-color)]">thermostat</span>
+                        </div>
+                        <div>
+                          <p class="font-semibold text-gray-800">Weather</p>
+                          <p class="text-gray-600">{{ weather.temp if weather else '22' }}°C, {{ weather.condition if weather else 'Sunny' }}</p>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-4">
+                        <div class="bg-gray-100 rounded-lg p-3">
+                          <span class="material-symbols-outlined text-2xl text-[var(--primary-color)]">style</span>
+                        </div>
+                        <div>
+                          <p class="font-semibold text-gray-800">Style</p>
+                          <p class="text-gray-600">Casual Chic</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mt-6 flex gap-4">
+                      <button class="px-6 py-3 bg-[var(--primary-color)] text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">Wear This</button>
+                      <button class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors" onclick="generateAIOutfit()">Generate New</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Dashboard specific functionality only
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Dashboard loaded');
+});
+
+// Generate AI Outfit function
+async function generateAIOutfit() {
+  const button = event.target;
+  const originalText = button.textContent;
+  const outfitImage = document.querySelector('.outfit-image');
+  const outfitContainer = document.querySelector('.outfit-container');
+  
+  // Show loading state
+  button.textContent = 'Generating...';
+  button.disabled = true;
+  button.classList.add('opacity-50', 'cursor-not-allowed');
+  
+  // Add loading spinner to image area
+  if (outfitContainer) {
+    outfitContainer.innerHTML = `
+      <div class="rounded-lg bg-gray-100 w-full h-[300px] flex items-center justify-center">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p class="text-gray-600 font-medium">Generating your new outfit...</p>
+          <p class="text-gray-400 text-sm">This may take a moment</p>
+        </div>
+      </div>
+    `;
+  }
+  
+  try {
+    const response = await fetch('/generate-ai-outfit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.success && data.outfit_url) {
+      // Update the image without page reload, add cache-busting parameter
+      const cacheBuster = new Date().getTime();
+      if (outfitContainer) {
+        outfitContainer.innerHTML = `
+          <img alt="Outfit of the day" class="outfit-image rounded-lg object-contain w-full h-[300px]" src="${data.outfit_url}?v=${cacheBuster}"/>
+        `;
+      }
+      
+      // Show success message briefly
+      const successMessage = document.createElement('div');
+      successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      successMessage.textContent = data.message || 'New outfit generated!';
+      document.body.appendChild(successMessage);
+      
+      // Remove success message after 3 seconds
+      setTimeout(() => {
+        if (successMessage.parentNode) {
+          successMessage.parentNode.removeChild(successMessage);
+        }
+      }, 3000);
+    } else {
+      // Show error and restore previous state or show placeholder
+      if (outfitContainer) {
+        outfitContainer.innerHTML = `
+          <div class="rounded-lg bg-gray-100 w-full h-[300px] flex items-center justify-center">
+            <div class="text-center">
+              <span class="material-symbols-outlined text-6xl text-red-300 mb-4">error</span>
+              <p class="text-red-500 font-medium">Failed to generate outfit</p>
+              <p class="text-gray-400 text-sm">Please try again</p>
+            </div>
+          </div>
+        `;
+      }
+      
+      alert(data.message || 'Failed to generate AI outfit');
+    }
+  } catch (error) {
+    console.error('Error generating AI outfit:', error);
+    
+    // Show error state
+    if (outfitContainer) {
+      outfitContainer.innerHTML = `
+        <div class="rounded-lg bg-gray-100 w-full h-[300px] flex items-center justify-center">
+          <div class="text-center">
+            <span class="material-symbols-outlined text-6xl text-red-300 mb-4">wifi_off</span>
+            <p class="text-red-500 font-medium">Connection error</p>
+            <p class="text-gray-400 text-sm">Please check your connection and try again</p>
+          </div>
+        </div>
+      `;
+    }
+    
+    alert('Error generating AI outfit. Please try again.');
+  } finally {
+    // Reset button
+    button.textContent = originalText;
+    button.disabled = false;
+    button.classList.remove('opacity-50', 'cursor-not-allowed');
+  }
+}
+</script>
+{% endblock %}

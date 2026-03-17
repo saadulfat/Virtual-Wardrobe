@@ -1,0 +1,26 @@
+fastapi==0.134.0
+uvicorn[standard]==0.22.0
+SQLAlchemy==2.0.21
+psycopg[binary]==3.3.3
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+python-multipart==0.0.22
+Jinja2==3.1.6
+python-dotenv==1.2.1
+itsdangerous==2.2.0
+requests==2.32.5
+pymysql==1.1.2
+cryptography==46.0.5
+google-generativeai==0.8.6
+aiohttp==3.8.5
+
+# Color detection / computer vision
+opencv-python==4.13.0.92
+mediapipe==0.10.7
+numpy==2.4.2
+scikit-learn==1.8.0
+webcolors==1.13
+colormath==3.0.0
+
+# Fix protobuf conflict
+protobuf==3.20.3

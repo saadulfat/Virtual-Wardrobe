@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6">
+  <a href="/dashboard" class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+    <span class="material-symbols-outlined">arrow_back</span>
+    Back to Dashboard
+  </a>
+</div>
+
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 tracking-tight sm:text-4xl">Virtual Try-On</h1>
+    <p class="mt-3 text-base text-gray-600">See how clothes look on your model.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Model Upload Section -->
+    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Upload Your Model</h2>
+        <p class="text-gray-600 mb-4">Upload a full-body photo of yourself or a model.</p>
+        
+        <div class="flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-gray-200 p-8 text-center hover:border-[#1919e6] transition-all cursor-pointer" id="uploadArea">
+            <div class="rounded-full bg-gray-100 p-3">
+                <span class="material-symbols-outlined text-3xl text-gray-500">cloud_upload</span>
+            </div>
+            <div>
+                <p class="text-gray-900 text-base font-bold">Drag and drop or click to upload</p>
+                <p class="text-gray-500 text-sm">Max file size: 5MB</p>
+            </div>
+            <button type="button" class="flex items-center justify-center rounded-lg h-10 px-5 bg-gray-800 text-white text-sm font-bold hover:bg-gray-900 transition-colors" onclick="document.getElementById('modelImageInput').click()">
+                <span class="truncate">Select File</span>
+            </button>
+            <input type="file" id="modelImageInput" accept="image/*" class="hidden" onchange="uploadModelImage(event)">
+        </div>
+        
+        <div id="uploadStatus" class="mt-4 hidden">
+            <p class="text-gray-600">Uploading...</p>
+        </div>
+        
+        <!-- Model Images Gallery -->
+        <div class="mt-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Your Models</h3>
+            <div id="modelImagesContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {% if model_images %}
+                    {% for model_image in model_images %}
+                        <div class="relative group">
+                            <img src="/static/{{ model_image.image_path }}" alt="Model" class="w-full h-40 object-cover rounded-lg">
+                            <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button class="bg-white rounded-full p-2" data-model-id="{{ model_image.id }}" onclick="handleModelSelect(this)">
+                                    <span class="material-symbols-outlined text-gray-800">check</span>
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-gray-500 col-span-full text-center">No model images uploaded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Wardrobe Selection Section -->
+    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Select Outfits</h2>
+        <p class="text-gray-600 mb-4">Choose clothes from your wardrobe to try on.</p>
+        
+        <div class="mb-6">
+            <button id="chooseOutfitBtn" class="w-full py-3 bg-[var(--primary-color)] text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors" onclick="showWardrobe()">
+                Choose Outfit
+            </button>
+        </div>
+        
+        <div id="selectedOutfitsContainer" class="mt-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Selected Outfits</h3>
+            <div id="selectedOutfitsList" class="space-y-4">
+                <p class="text-gray-500 text-center">No outfits selected yet.</p>
+            </div>
+        </div>
+        
+        <div class="mt-8">
+            <button id="tryOnBtn" class="w-full py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:bg-gray-400" onclick="processTryOn()" disabled>
+                Try On Selected Outfits
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedModelId = null;
+    let selectedOutfitIds = [];
+    
+    function uploadModelImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const formData = new FormData();
+        formData.append('model_image', file);
+        
+        document.getElementById('uploadStatus').classList.remove('hidden');
+        
+        fetch('/upload-model-image', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('uploadStatus').classList.add('hidden');
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error uploading model image: ' + data.error);
+            }
+        })
+        .catch(error => {
+            document.getElementById('uploadStatus').classList.add('hidden');
+            alert('Error uploading model image: ' + error);
+        });
+    }
+    
+    function handleModelSelect(button) {
+        const modelId = button.getAttribute('data-model-id');
+        selectedModelId = parseInt(modelId);
+        
+        // Update UI to show selection
+        document.querySelectorAll('#modelImagesContainer .group').forEach(group => {
+            const selectBtn = group.querySelector('button');
+            if (selectBtn.getAttribute('data-model-id') === modelId) {
+                selectBtn.innerHTML = '<span class="material-symbols-outlined text-gray-800">check_circle</span>';
+                selectBtn.classList.add('bg-green-500');
+                selectBtn.classList.remove('bg-white');
+            } else {
+                selectBtn.innerHTML = '<span class="material-symbols-outlined text-gray-800">check</span>';
+                selectBtn.classList.remove('bg-green-500');
+                selectBtn.classList.add('bg-white');
+            }
+        });
+        
+        alert('Model selected! Now choose outfits to try on.');
+    }
+    
+    function selectModel(modelId) {
+        selectedModelId = modelId;
+        alert('Model selected! Now choose outfits to try on.');
+    }
+    
+    function showWardrobe() {
+        if (!selectedModelId) {
+            alert('Please select a model first.');
+            return;
+        }
+        // Redirect to wardrobe page with parameters to indicate we're selecting for try-on
+        window.location.href = '/wardrobe?tryon=true&selected_model=' + selectedModelId;
+    }
+    
+    function addSelectedOutfit(outfitId, name, imagePath) {
+        // Handle both integer IDs and object formats
+        let id = outfitId;
+        if (typeof outfitId === 'object' && outfitId !== null) {
+            id = outfitId.id;
+        }
+        
+        if (!selectedOutfitIds.includes(id)) {
+            selectedOutfitIds.push(id);
+            
+            // Add to UI
+            const container = document.getElementById('selectedOutfitsList');
+            if (container.querySelector('p') && container.querySelector('p').textContent === 'No outfits selected yet.') {
+                container.innerHTML = '';
+            }
+            
+            const outfitElement = document.createElement('div');
+            outfitElement.className = 'flex items-center gap-4 p-4 bg-gray-50 rounded-lg';
+            outfitElement.innerHTML = `
+                <img src="/static/${imagePath}" alt="${name}" class="w-16 h-16 object-cover rounded-lg">
+                <div class="flex-1">
+                    <h4 class="font-medium text-gray-900">${name}</h4>
+                </div>
+                <button class="text-red-500 hover:text-red-700" onclick="removeSelectedOutfit(${id}, this)">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
+            `;
+            container.appendChild(outfitElement);
+            
+            // Enable try-on button
+            document.getElementById('tryOnBtn').disabled = false;
+        }
+    }
+    
+    function removeSelectedOutfit(outfitId, buttonElement) {
+        // Filter out the outfit ID from the array
+        selectedOutfitIds = selectedOutfitIds.filter(id => {
+            // Handle both number and object comparisons
+            if (typeof id === 'object' && id !== null) {
+                return id.id !== outfitId;
+            }
+            return id !== outfitId;
+        });
+        
+        // Remove from UI
+        buttonElement.closest('div').remove();
+        
+        // If no outfits left, show placeholder
+        const container = document.getElementById('selectedOutfitsList');
+        if (container.children.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-center">No outfits selected yet.</p>';
+            document.getElementById('tryOnBtn').disabled = true;
+        }
+    }
+    
+    function processTryOn() {
+        if (!selectedModelId) {
+            alert('Please select a model first.');
+            return;
+        }
+        
+        if (selectedOutfitIds.length === 0) {
+            alert('Please select at least one outfit.');
+            return;
+        }
+        
+        // Create request data
+        const requestData = {
+            model_image_id: selectedModelId,
+            outfit_ids: selectedOutfitIds
+        };
+        
+        // Show loading state
+        const tryOnBtn = document.getElementById('tryOnBtn');
+        const originalText = tryOnBtn.innerHTML;
+        tryOnBtn.innerHTML = '<span class="animate-spin mr-2">⟳</span>Processing...';
+        tryOnBtn.disabled = true;
+        
+        // Send request to backend
+        fetch('/try-on-process', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the selected model from the gallery
+                removeModelFromGallery(selectedModelId);
+                
+                // Redirect to see model page with result
+                window.location.href = `/see-model?result=${encodeURIComponent(data.result_url)}&prompt=${encodeURIComponent(data.prompt || '')}`;
+            } else {
+                alert('Error processing try-on: ' + data.error);
+                // Reset button
+                tryOnBtn.innerHTML = originalText;
+                tryOnBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error processing try-on. Please try again.');
+            // Reset button
+            tryOnBtn.innerHTML = originalText;
+            tryOnBtn.disabled = false;
+        });
+    }
+    
+    function removeModelFromGallery(modelId) {
+        // Remove the model image from the gallery UI
+        const modelElements = document.querySelectorAll(`[data-model-id="${modelId}"]`);
+        modelElements.forEach(element => {
+            element.closest('.group').remove();
+        });
+        
+        // If no models left, show placeholder
+        const container = document.getElementById('modelImagesContainer');
+        if (container.children.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 col-span-full text-center">No model images uploaded yet.</p>';
+        }
+    }
+    
+    // Check for selected outfits in URL parameters
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedOutfits = urlParams.get('selected_outfits');
+        const selectedModel = urlParams.get('selected_model');
+        
+        if (selectedOutfits) {
+            try {
+                const outfits = JSON.parse(decodeURIComponent(selectedOutfits));
+                outfits.forEach(outfit => {
+                    addSelectedOutfit(outfit.id, outfit.name, outfit.image_path);
+                });
+            } catch (e) {
+                console.error('Error parsing selected outfits:', e);
+            }
+        }
+        
+        if (selectedModel) {
+            selectedModelId = parseInt(selectedModel);
+        }
+    });
+</script>
+{% endblock %}

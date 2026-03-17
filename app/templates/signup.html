@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-sm mx-auto">
+  <div class="mb-8">
+    <h1 class="text-zinc-900 text-3xl font-bold leading-tight tracking-tight text-center">Create Your Account</h1>
+    <p class="text-gray-500 text-sm font-normal leading-normal text-center mt-2">Join the ultimate virtual wardrobe experience</p>
+  </div>
+  
+  <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-8">
+    <form method="post" action="/signup" class="space-y-6">
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-gray-700" for="name">Full Name</label>
+        <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 focus:outline-0 focus:ring-2 focus:ring-[var(--primary-color)] focus:ring-offset-2 border border-gray-300 bg-white h-12 placeholder:text-gray-500 px-3 text-base" 
+               id="name" name="name" type="text" required placeholder="Your Name" 
+               value="{{ prefill.name if prefill else '' }}">
+      </div>
+      
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-gray-700" for="email">Email Address</label>
+        <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 focus:outline-0 focus:ring-2 focus:ring-[var(--primary-color)] focus:ring-offset-2 border border-gray-300 bg-white h-12 placeholder:text-gray-500 px-3 text-base" 
+               id="email" name="email" type="email" required autocomplete="email" placeholder="you@example.com" 
+               value="{{ prefill.email if prefill else '' }}">
+      </div>
+      
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-gray-700" for="password">Password</label>
+        <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 focus:outline-0 focus:ring-2 focus:ring-[var(--primary-color)] focus:ring-offset-2 border border-gray-300 bg-white h-12 placeholder:text-gray-500 px-3 text-base" 
+               id="password" name="password" type="password" required autocomplete="current-password" placeholder="••••••••">
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700" for="gender">Gender</label>
+          <select class="form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 focus:outline-0 focus:ring-2 focus:ring-[var(--primary-color)] focus:ring-offset-2 border border-gray-300 bg-white h-12 placeholder:text-gray-500 px-3 text-base" 
+                  id="gender" name="gender" required>
+            <option disabled {% if not prefill or not prefill.gender %}selected{% endif %}>Select</option>
+            <option {% if prefill and prefill.gender == 'Male' %}selected{% endif %}>Male</option>
+            <option {% if prefill and prefill.gender == 'Female' %}selected{% endif %}>Female</option>
+            <option {% if prefill and prefill.gender == 'Other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700" for="age">Age</label>
+          <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 focus:outline-0 focus:ring-2 focus:ring-[var(--primary-color)] focus:ring-offset-2 border border-gray-300 bg-white h-12 placeholder:text-gray-500 px-3 text-base" 
+                 id="age" name="age" type="number" required placeholder="25" 
+                 value="{{ prefill.age if prefill else '' }}">
+        </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700" for="height">Height (cm)</label>
+          <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 focus:outline-0 focus:ring-2 focus:ring-[var(--primary-color)] focus:ring-offset-2 border border-gray-300 bg-white h-12 placeholder:text-gray-500 px-3 text-base" 
+                 id="height" name="height" type="number" required placeholder="175" 
+                 value="{{ prefill.height if prefill else '' }}">
+        </div>
+      </div>
+      
+      <button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-[var(--primary-color)] text-white text-sm font-medium transition-colors hover:bg-opacity-90 w-full" 
+              type="submit">
+        <span class="truncate">Create Account</span>
+      </button>
+      
+      <p class="text-center text-sm text-gray-600">
+        Already have an account?
+        <a href="/login" class="text-[var(--primary-color)] hover:underline font-medium">Sign in</a>
+      </p>
+    </form>
+  </div>
+</div>
+{% endblock %}

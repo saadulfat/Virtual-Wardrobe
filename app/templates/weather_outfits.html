@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6">
+  <a href="/dashboard" class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+    <span class="material-symbols-outlined">arrow_back</span>
+    Back to Dashboard
+  </a>
+</div>
+
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 tracking-tight sm:text-4xl">Weather-Based Outfits</h1>
+    <p class="mt-3 text-base text-gray-600">Get outfit recommendations based on current weather conditions.</p>
+</div>
+
+<div class="mb-8 relative">
+    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+    <input class="form-input w-full rounded-md border-gray-300 bg-white py-3 pl-12 pr-4 text-gray-800 placeholder:text-gray-400 focus:border-[var(--primary-color)] focus:ring-[var(--primary-color)]" 
+           placeholder="Search for a city (e.g., London, New York)" 
+           id="citySearch" 
+           value=""/>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+    <div class="md:col-span-1 bg-white p-6 rounded-md shadow-sm">
+        <h2 class="text-gray-800 text-2xl font-bold leading-tight mb-4">Current Weather</h2>
+        <div class="flex items-center justify-between">
+            <div class="flex flex-col gap-1">
+                <p class="text-gray-800 text-lg font-bold leading-tight" id="weatherCondition">{{ weather.condition or 'Sunny' }}</p>
+                <p class="text-gray-500 text-3xl font-bold" id="temperature">{{ weather.temperature or '25' }}°C</p>
+                <p class="text-gray-500 text-sm" id="location">{{ weather.location or 'London, UK' }}</p>
+            </div>
+            <span class="material-symbols-outlined text-7xl text-yellow-400" id="weatherIcon">sunny</span>
+        </div>
+    </div>
+
+    <div class="md:col-span-2">
+        <h2 class="text-gray-800 text-2xl font-bold leading-tight mb-4">Outfit Recommendations</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            {% for outfit in weather_outfits %}
+            <div class="flex flex-col gap-3">
+                <div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity" 
+                     style='background-image: url("/static/{{ outfit.image_path|sanitize_url }}");'
+                     onclick="viewOutfit('{{ outfit.id }}')"></div>
+                <p class="text-gray-800 text-sm font-medium leading-normal text-center">{{ outfit.subcategory or outfit.category }}</p>
+            </div>
+            {% else %}
+            <!-- Show message when no user outfits found -->
+            <div class="col-span-4 text-center py-8">
+                <div class="mb-4">
+                    <span class="material-symbols-outlined text-4xl text-gray-400">checkroom</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-600 mb-2">No weather-appropriate outfits found</h3>
+                <p class="text-gray-500 mb-4">Upload some clothes to get personalized weather recommendations!</p>
+                <a href="/upload_outfit" class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <span class="material-symbols-outlined text-sm">add</span>
+                    Add Clothes
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Weather and outfit functionality
+    function viewOutfit(outfitId) {
+        // Navigate to outfit detail view
+        console.log('Viewing outfit:', outfitId);
+        // You can implement actual navigation here
+        // window.location.href = `/outfit/${outfitId}`;
+    }
+
+    // City search functionality
+    document.getElementById('citySearch').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchWeather(this.value);
+        }
+    });
+
+    async function searchWeather(city) {
+        if (!city || city.trim() === '') {
+            alert('Please enter a city name');
+            return;
+        }
+        
+        // Show loading state
+        const searchInput = document.getElementById('citySearch');
+        const originalValue = searchInput.value;
+        searchInput.value = 'Searching...';
+        searchInput.disabled = true;
+        
+        try {
+            const response = await fetch(`/api/weather/${encodeURIComponent(city.trim())}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update weather display
+                document.getElementById('weatherCondition').textContent = data.weather.condition;
+                document.getElementById('temperature').textContent = data.weather.temperature + '°C';
+                document.getElementById('location').textContent = data.weather.location;
+                
+                // Update weather icon
+                updateWeatherIcon(data.weather.condition);
+                
+                // Update outfit recommendations
+                updateOutfitRecommendations(data.outfits);
+                
+                console.log('Weather updated successfully for:', city);
+            } else {
+                alert(data.error || 'City not found. Please try a different city.');
+            }
+        } catch (error) {
+            console.error('Error fetching weather:', error);
+            alert('Error fetching weather data. Please try again.');
+        } finally {
+            // Restore search input
+            searchInput.value = originalValue;
+            searchInput.disabled = false;
+        }
+    }
+    
+    function updateOutfitRecommendations(outfits) {
+        const outfitGrid = document.querySelector('.grid.grid-cols-2.sm\\:grid-cols-4.gap-6');
+        
+        if (outfits && outfits.length > 0) {
+            // Clear existing outfits
+            outfitGrid.innerHTML = '';
+            
+            // Add new outfits (limit to 4 for display)
+            outfits.slice(0, 4).forEach(outfit => {
+                const outfitElement = document.createElement('div');
+                outfitElement.className = 'flex flex-col gap-3';
+                outfitElement.innerHTML = `
+                    <div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity" 
+                         style='background-image: url("/static/${outfit.image_path}");'
+                         onclick="viewOutfit('${outfit.id}')"></div>
+                    <p class="text-gray-800 text-sm font-medium leading-normal text-center">${outfit.name}</p>
+                `;
+                outfitGrid.appendChild(outfitElement);
+            });
+        } else {
+            // Show default outfits if no user outfits available
+            outfitGrid.innerHTML = `
+                <div class="flex flex-col gap-3">
+                    <div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity" 
+                         style='background-image: url("https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400");'></div>
+                    <p class="text-gray-800 text-sm font-medium leading-normal text-center">Casual Day Out</p>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity" 
+                         style='background-image: url("https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400");'></div>
+                    <p class="text-gray-800 text-sm font-medium leading-normal text-center">Summer Evening</p>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity" 
+                         style='background-image: url("https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400");'></div>
+                    <p class="text-gray-800 text-sm font-medium leading-normal text-center">Rainy Day Chic</p>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity" 
+                         style='background-image: url("https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400");'></div>
+                    <p class="text-gray-800 text-sm font-medium leading-normal text-center">Business Casual</p>
+                </div>
+            `;
+        }
+    }
+
+    // Update weather icon based on condition
+    function updateWeatherIcon(condition) {
+        const iconMap = {
+            'clear': 'sunny',
+            'sunny': 'sunny', 
+            'clouds': 'cloud',
+            'cloudy': 'cloud',
+            'rain': 'rainy',
+            'rainy': 'rainy',
+            'drizzle': 'rainy',
+            'snow': 'snowing',
+            'snowy': 'snowing',
+            'thunderstorm': 'thunderstorm',
+            'stormy': 'thunderstorm',
+            'mist': 'foggy',
+            'fog': 'foggy',
+            'haze': 'foggy'
+        };
+        
+        const icon = iconMap[condition.toLowerCase()] || 'sunny';
+        const weatherIconElement = document.getElementById('weatherIcon');
+        weatherIconElement.textContent = icon;
+        
+        // Update icon color based on condition
+        weatherIconElement.className = 'material-symbols-outlined text-7xl';
+        if (icon === 'sunny') {
+            weatherIconElement.classList.add('text-yellow-400');
+        } else if (icon === 'cloud' || icon === 'foggy') {
+            weatherIconElement.classList.add('text-gray-400');
+        } else if (icon === 'rainy' || icon === 'thunderstorm') {
+            weatherIconElement.classList.add('text-blue-400');
+        } else if (icon === 'snowing') {
+            weatherIconElement.classList.add('text-blue-200');
+        }
+    }
+    
+    // Initialize weather icon on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentCondition = document.getElementById('weatherCondition').textContent;
+        updateWeatherIcon(currentCondition);
+    });
+</script>
+{% endblock %}

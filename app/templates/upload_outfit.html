@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6">
+  <a href="/dashboard" class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+    <span class="material-symbols-outlined">arrow_back</span>
+    Back to Dashboard
+  </a>
+</div>
+
+<div class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+  <a class="hover:text-gray-900" href="/see_wardrobe">My Wardrobe</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="text-gray-900 font-medium">Upload Outfit</span>
+</div>
+
+<div class="bg-white p-8 rounded-2xl shadow-sm">
+  <h2 class="text-gray-900 text-2xl font-bold leading-tight mb-2">Upload Outfit</h2>
+  <p class="text-gray-500 mb-8">Follow the steps below to add a new item to your virtual wardrobe.</p>
+
+  <form method="POST" action="/upload_outfit" enctype="multipart/form-data" id="uploadForm">
+    <div class="space-y-12">
+      <!-- Step 1: Select Category -->
+      <div>
+        <h3 class="text-gray-900 text-lg font-bold leading-tight mb-4">1. Select Category</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-4">
+          <div class="flex flex-col items-center gap-2 cursor-pointer group category-item" data-category="shirt">
+            <div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl border-2 border-transparent group-hover:border-[#1919e6] transition-all" style='background-image: url("/static/images/shirt.png");'></div>
+            <p class="text-gray-800 text-sm font-medium group-hover:text-[#1919e6] transition-all">Shirt</p>
+          </div>
+          <div class="flex flex-col items-center gap-2 cursor-pointer group category-item" data-category="pants">
+            <div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl border-2 border-transparent group-hover:border-[#1919e6] transition-all" style='background-image: url("/static/images/pants.png");'></div>
+            <p class="text-gray-800 text-sm font-medium group-hover:text-[#1919e6] transition-all">Pants</p>
+          </div>
+          <div class="flex flex-col items-center gap-2 cursor-pointer group category-item" data-category="shoes">
+            <div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl border-2 border-transparent group-hover:border-[#1919e6] transition-all" style='background-image: url("/static/images/shoes.png");'></div>
+            <p class="text-gray-800 text-sm font-medium group-hover:text-[#1919e6] transition-all">Shoes</p>
+          </div>
+          <div class="flex flex-col items-center gap-2 cursor-pointer group category-item" data-category="jacket">
+            <div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl border-2 border-transparent group-hover:border-[#1919e6] transition-all" style='background-image: url("/static/images/jacket.png");'></div>
+            <p class="text-gray-800 text-sm font-medium group-hover:text-[#1919e6] transition-all">Jacket</p>
+          </div>
+          <div class="flex flex-col items-center gap-2 cursor-pointer group category-item" data-category="accessories">
+            <div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl border-2 border-transparent group-hover:border-[#1919e6] transition-all" style='background-image: url("/static/images/accessories.png");'></div>
+            <p class="text-gray-800 text-sm font-medium group-hover:text-[#1919e6] transition-all">Accessories</p>
+          </div>
+          <div class="flex flex-col items-center gap-2 cursor-pointer group category-item" data-category="hat">
+            <div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl border-2 border-transparent group-hover:border-[#1919e6] transition-all" style='background-image: url("/static/images/hat.png");'></div>
+            <p class="text-gray-800 text-sm font-medium group-hover:text-[#1919e6] transition-all">Hat</p>
+          </div>
+          <div class="flex flex-col items-center gap-2 cursor-pointer group category-item" data-category="custom">
+            <div class="w-full bg-gray-100 flex items-center justify-center aspect-square rounded-xl border-2 border-dashed border-gray-300 group-hover:border-[#1919e6] transition-all">
+              <span class="material-symbols-outlined text-3xl text-gray-400 group-hover:text-[#1919e6] transition-all">add</span>
+            </div>
+            <p class="text-gray-800 text-sm font-medium group-hover:text-[#1919e6] transition-all">Add Custom</p>
+          </div>
+        </div>
+        <input type="hidden" name="category" id="selectedCategory" required>
+      </div>
+
+      <!-- Step 2: Upload Image -->
+      <div>
+        <h3 class="text-gray-900 text-lg font-bold leading-tight mb-4">2. Upload Image</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Upload Area -->
+          <div class="flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-gray-200 p-8 text-center hover:border-[#1919e6] transition-all cursor-pointer" id="uploadArea">
+            <div class="rounded-full bg-gray-100 p-3">
+              <span class="material-symbols-outlined text-3xl text-gray-500">cloud_upload</span>
+            </div>
+            <div>
+              <p class="text-gray-900 text-base font-bold">Drag and drop or click to upload</p>
+              <p class="text-gray-500 text-sm">Max file size: 5MB</p>
+            </div>
+            <button type="button" class="flex items-center justify-center rounded-lg h-10 px-5 bg-gray-800 text-white text-sm font-bold hover:bg-gray-900 transition-colors" onclick="document.getElementById('fileInput').click()">
+              <span class="truncate">Select File</span>
+            </button>
+            <input type="file" name="outfit_image" id="fileInput" accept="image/*" required class="hidden">
+          </div>
+          
+          <!-- Preview Box -->
+          <div id="imagePreviewBox" class="hidden">
+            <div class="bg-gray-50 rounded-xl border-2 border-gray-200 p-6">
+              <h4 class="text-gray-900 text-base font-semibold mb-4">Image Preview</h4>
+              <div class="bg-white rounded-lg border overflow-hidden">
+                <img id="previewImage" class="w-full h-64 object-cover" alt="Preview">
+              </div>
+              <div class="mt-4 p-3 bg-white rounded-lg border">
+                <p id="fileName" class="text-sm text-gray-600 font-medium truncate"></p>
+                <p id="fileSize" class="text-xs text-gray-500 mt-1"></p>
+              </div>
+              <button type="button" onclick="removeImage()" class="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium">
+                <span class="material-symbols-outlined text-sm">delete</span>
+                Remove Image
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Add Details -->
+      <div>
+        <h3 class="text-gray-900 text-lg font-bold leading-tight mb-4">3. Add Details</h3>
+        <div class="flex flex-col">
+          <label class="text-sm font-medium text-gray-700 mb-1" for="subcategory">Subcategory <span class="text-red-500">*</span></label>
+          <select class="form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 focus:outline-0 focus:ring-2 focus:ring-[#1919e6] focus:ring-offset-2 border border-gray-300 bg-white h-12 placeholder:text-gray-500 px-3 text-base" id="subcategory" name="subcategory" required>
+            <option value="">Select Subcategory</option>
+          </select>
+          <button type="button" id="addCustomSubcategory" class="mt-2 text-sm text-[#1919e6] hover:text-blue-700 font-medium flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">add</span>
+            Add Custom Subcategory
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-between items-center mt-12 pt-8 border-t border-gray-200">
+      <a href="/see_wardrobe" class="flex items-center justify-center rounded-lg h-11 px-6 bg-gray-100 text-gray-800 text-sm font-bold hover:bg-gray-200 transition-colors">
+        <span class="truncate">Back</span>
+      </a>
+      <div class="flex gap-4">
+        <button type="button" class="flex items-center justify-center rounded-lg h-11 px-6 bg-gray-100 text-gray-800 text-sm font-bold hover:bg-gray-200 transition-colors" onclick="resetForm()">
+          <span class="truncate">Cancel</span>
+        </button>
+        <button type="submit" class="flex items-center justify-center rounded-lg h-11 px-8 bg-[#1919e6] text-white text-sm font-bold hover:bg-blue-700 transition-colors shadow-md">
+          <span class="truncate">Upload</span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Custom Category Modal -->
+<div id="customCategoryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center" onclick="closeCustomCategoryModal()">
+  <div class="bg-white rounded-xl p-6 w-96 max-w-sm mx-4" onclick="event.stopPropagation()">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Add Custom Category</h3>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700 mb-2">Category Name</label>
+      <input type="text" id="customCategoryInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1919e6] focus:border-transparent" placeholder="Enter category name">
+    </div>
+    <div class="flex gap-3 justify-end">
+      <button type="button" onclick="closeCustomCategoryModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+      <button type="button" onclick="saveCustomCategory()" class="px-4 py-2 bg-[#1919e6] text-white rounded-lg hover:bg-blue-700 transition-colors">Add Category</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Subcategory Modal -->
+<div id="customSubcategoryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center" onclick="closeCustomSubcategoryModal()">
+  <div class="bg-white rounded-xl p-6 w-96 max-w-sm mx-4" onclick="event.stopPropagation()">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Add Custom Subcategory</h3>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700 mb-2">Subcategory Name</label>
+      <input type="text" id="customSubcategoryInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1919e6] focus:border-transparent" placeholder="Enter subcategory name">
+    </div>
+    <div class="flex gap-3 justify-end">
+      <button type="button" onclick="closeCustomSubcategoryModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+      <button type="button" onclick="saveCustomSubcategory()" class="px-4 py-2 bg-[#1919e6] text-white rounded-lg hover:bg-blue-700 transition-colors">Add Subcategory</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Global functions for modal handling
+function closeCustomCategoryModal() {
+  document.getElementById('customCategoryModal').classList.add('hidden');
+  document.getElementById('customCategoryInput').value = '';
+}
+
+function saveCustomCategory() {
+  const customName = document.getElementById('customCategoryInput').value.trim();
+  if (customName) {
+    const cleanName = customName.toLowerCase();
+    const categoryItems = document.querySelectorAll('.category-item');
+    const selectedCategoryInput = document.getElementById('selectedCategory');
+    const subcategorySelect = document.getElementById('subcategory');
+    
+    // Remove active state from all items
+    categoryItems.forEach(cat => {
+      const border = cat.querySelector('div');
+      border.classList.remove('border-[#1919e6]');
+      border.classList.add('border-transparent');
+    });
+    
+    // Set the custom category
+    selectedCategoryInput.value = cleanName;
+    
+    // Clear subcategories and set as custom
+    subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+    const customOption = document.createElement('option');
+    customOption.value = 'custom';
+    customOption.textContent = '+ Add Custom';
+    subcategorySelect.appendChild(customOption);
+    
+    // Visual feedback
+    const customButton = document.querySelector('[data-category="custom"]');
+    const border = customButton.querySelector('div');
+    border.classList.add('border-[#1919e6]');
+    border.classList.remove('border-transparent');
+    
+    // Show success message
+    const successMsg = document.createElement('div');
+    successMsg.className = 'mt-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm';
+    successMsg.textContent = `Custom category "${customName}" selected. Please add a subcategory.`;
+    document.querySelector('[data-category="custom"]').parentNode.appendChild(successMsg);
+    setTimeout(() => successMsg.remove(), 3000);
+    
+    closeCustomCategoryModal();
+  }
+}
+
+function closeCustomSubcategoryModal() {
+  document.getElementById('customSubcategoryModal').classList.add('hidden');
+  document.getElementById('customSubcategoryInput').value = '';
+}
+
+function saveCustomSubcategory() {
+  const customName = document.getElementById('customSubcategoryInput').value.trim();
+  if (customName) {
+    const cleanName = customName.toLowerCase().replace(/\s+/g, '-');
+    const subcategorySelect = document.getElementById('subcategory');
+    
+    // Add to subcategory dropdown
+    const option = document.createElement('option');
+    option.value = cleanName;
+    option.textContent = customName;
+    option.selected = true;
+    
+    // Insert before the "+ Add Custom" option
+    const customOption = Array.from(subcategorySelect.options).find(opt => opt.value === 'custom');
+    if (customOption) {
+      subcategorySelect.insertBefore(option, customOption);
+    } else {
+      subcategorySelect.appendChild(option);
+    }
+    
+    closeCustomSubcategoryModal();
+  }
+}
+
+// Upload form functionality
+function initializeUploadForm() {
+  // Define subcategories for each category
+  const subcategories = {
+    'shirt': ['T-Shirt', 'Dress Shirt', 'Polo Shirt', 'Flannel', 'Blouse', 'Tank Top', 'Crop Top'],
+    'pants': ['Jeans', 'Chinos', 'Dress Pants', 'Shorts', 'Leggings', 'Cargo Pants', 'Sweatpants'],
+    'shoes': ['Sneakers', 'Dress Shoes', 'Boots', 'Sandals', 'Heels', 'Flats', 'Loafers'],
+    'jacket': ['Blazer', 'Denim Jacket', 'Leather Jacket', 'Hoodie', 'Cardigan', 'Trench Coat', 'Bomber Jacket'],
+    'accessories': ['Watch', 'Necklace', 'Bracelet', 'Ring', 'Earrings', 'Sunglasses', 'Belt', 'Scarf'],
+    'hat': ['Baseball Cap', 'Beanie', 'Fedora', 'Bucket Hat', 'Beret', 'Sun Hat']
+  };
+
+  // Category selection
+  const categoryItems = document.querySelectorAll('.category-item');
+  const selectedCategoryInput = document.getElementById('selectedCategory');
+  const subcategorySelect = document.getElementById('subcategory');
+  
+  // Function to update subcategories
+  function updateSubcategories(category) {
+    // Clear existing options
+    subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+    
+    if (category && subcategories[category]) {
+      subcategories[category].forEach(sub => {
+        const option = document.createElement('option');
+        option.value = sub.toLowerCase().replace(/\s+/g, '-');
+        option.textContent = sub;
+        subcategorySelect.appendChild(option);
+      });
+    }
+    
+    // Add custom option if not already present
+    if (!Array.from(subcategorySelect.options).find(opt => opt.value === 'custom')) {
+      const customOption = document.createElement('option');
+      customOption.value = 'custom';
+      customOption.textContent = '+ Add Custom';
+      subcategorySelect.appendChild(customOption);
+    }
+  }
+  
+  categoryItems.forEach(item => {
+    item.addEventListener('click', function() {
+      const category = this.dataset.category;
+      
+      // Handle custom category
+      if (category === 'custom') {
+        handleCustomCategory();
+        return;
+      }
+      
+      // Remove active state from all items
+      categoryItems.forEach(cat => {
+        const border = cat.querySelector('div');
+        border.classList.remove('border-[#1919e6]');
+        border.classList.add('border-transparent');
+      });
+      
+      // Add active state to clicked item
+      const border = this.querySelector('div');
+      border.classList.add('border-[#1919e6]');
+      border.classList.remove('border-transparent');
+      
+      // Set selected category
+      selectedCategoryInput.value = category;
+      
+      // Update subcategories based on selected category
+      updateSubcategories(category);
+    });
+  });
+  
+  // File upload functionality
+  const fileInput = document.getElementById('fileInput');
+  const uploadArea = document.getElementById('uploadArea');
+  const imagePreviewBox = document.getElementById('imagePreviewBox');
+  const previewImage = document.getElementById('previewImage');
+  const fileName = document.getElementById('fileName');
+  const fileSize = document.getElementById('fileSize');
+  
+  // Handle file selection
+  fileInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      // Show preview
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        previewImage.src = e.target.result;
+        fileName.textContent = file.name;
+        fileSize.textContent = `Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+        imagePreviewBox.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  // Custom category and subcategory handlers
+  function handleCustomCategory() {
+    document.getElementById('customCategoryModal').classList.remove('hidden');
+    document.getElementById('customCategoryInput').focus();
+  }
+  
+  function handleCustomSubcategory() {
+    document.getElementById('customSubcategoryModal').classList.remove('hidden');
+    document.getElementById('customSubcategoryInput').focus();
+  }
+  
+  // Add event listeners for custom buttons
+  document.getElementById('addCustomSubcategory').addEventListener('click', handleCustomSubcategory);
+  
+  // Handle subcategory selection
+  subcategorySelect.addEventListener('change', function() {
+    if (this.value === 'custom') {
+      handleCustomSubcategory();
+    }
+  });
+  
+  // Add Enter key support for modals
+  document.getElementById('customCategoryInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      saveCustomCategory();
+    }
+  });
+  
+  document.getElementById('customSubcategoryInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      saveCustomSubcategory();
+    }
+  });
+  
+  // Drag and drop functionality
+  uploadArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    uploadArea.classList.add('border-[#1919e6]');
+  });
+  
+  uploadArea.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    uploadArea.classList.remove('border-[#1919e6]');
+  });
+  
+  uploadArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    uploadArea.classList.remove('border-[#1919e6]');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      fileInput.files = files;
+      fileInput.dispatchEvent(new Event('change'));
+    }
+  });
+}
+
+// Remove image function
+function removeImage() {
+  const fileInput = document.getElementById('fileInput');
+  const imagePreviewBox = document.getElementById('imagePreviewBox');
+  
+  fileInput.value = '';
+  imagePreviewBox.classList.add('hidden');
+}
+
+// Reset form function
+function resetForm() {
+  const form = document.getElementById('uploadForm');
+  form.reset();
+  
+  // Reset category selection
+  const categoryItems = document.querySelectorAll('.category-item');
+  categoryItems.forEach(cat => {
+    const border = cat.querySelector('div');
+    border.classList.remove('border-[#1919e6]');
+    border.classList.add('border-transparent');
+  });
+  
+  // Reset subcategories
+  const subcategorySelect = document.getElementById('subcategory');
+  subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+  
+  // Hide image preview
+  const imagePreviewBox = document.getElementById('imagePreviewBox');
+  imagePreviewBox.classList.add('hidden');
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  initializeUploadForm();
+});
+</script>
+{% endblock %}
